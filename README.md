@@ -17,3 +17,4 @@ SSR로 구동하는 vite, vue3 프로젝트를 만들어보고 싶어서 만들�
 - pinia
 - vue-router
 - @vue/compiler-sfc
+- vue-server-renderer : SSR(Server-Side Rendering)를 구현할 때 사용되는 Vue.js의 라이브러리
