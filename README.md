@@ -16,5 +16,5 @@ SSR로 구동하는 vite, vue3 프로젝트를 만들어보고 싶어서 만들�
 - @types/node : Node.js 모듈의 타입 정의를 제공하는 패키지
 - pinia
 - vue-router
-- @vue/compiler-sfc
+- @vue/compiler-sfc : 단일 파일 컴포넌트(Single File Component)를 컴파일하기 위한 라이브러리
 - vue-server-renderer : SSR(Server-Side Rendering)를 구현할 때 사용되는 Vue.js의 라이브러리
