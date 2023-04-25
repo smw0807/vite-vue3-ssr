@@ -1,6 +1,6 @@
 # Vite + Vue3 SSR (with TypeScript)
 
-SSR로 구동하는 vite, vue3 프로젝트를 만들어보고 싶어서 만들게됨.
+SSR로 구동하는 vite, vue3 프로젝트를 만들어보고 싶어서 공식홈페이지를 참고해서 만들어보는 중이며, 아직 미완성임.
 
 # 개발환경
 
