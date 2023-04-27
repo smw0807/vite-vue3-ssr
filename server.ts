@@ -1,67 +1,94 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import express from 'express'
-import { createServer as createViteServer } from 'vite'
+import type { ViteDevServer } from 'vite'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const isTest = process.env.NODE_ENV === 'test' || !!process.env.VITE_TEST_BUILD;
+
+const root = process.cwd();
+const isProd = process.env.NODE_ENV === 'production';
 
 async function createServer() {
-  const app = express()
+  const resolve = (p: string) => path.resolve(__dirname, p);
 
-  // 미들웨어 모드로 Vite 서버를 생성하고 애플리케이션의 타입을 'custom'으로 설정합니다.
-  // 이는 Vite의 자체 HTML 제공 로직을 비활성화하고, 상위 서버에서 이를 제어할 수 있도록 합니다.
-  const vite = await createViteServer({
-    server: { middlewareMode: 'ssr' },
-    appType: 'custom'
-  })
+  const indexProd = isProd 
+    ? fs.readFileSync(resolve('dist/client/index.html'), 'utf-8') 
+    : '';
+  
+  const manifest = isProd
+    // @ts-expect-error dist file
+    ? await import('./dist/client/ssr-manifest.json')
+    : {};
+
+  const app = express();
+
   //여기서 vite는 ViteDevServer의 인스턴스임(https://vitejs-kr.github.io/guide/api-javascript.html#vitedevserver)
+  let vite: ViteDevServer;
 
-  // Vite를 미들웨어로 사용합니다.
-  // 만약 Express 라우터(express.Router())를 사용하는 경우, router.use를 사용해야 합니다.
-  app.use(vite.middlewares)
+  if (!isProd) {
+    vite = await import('vite').then(i => i.createServer({
+      root,
+      logLevel: isTest ? 'error' : 'info',
+      server: {
+        middlewareMode: true
+      }
+    }))
+    // Vite를 미들웨어로 사용합니다.
+    // 만약 Express 라우터(express.Router())를 사용하는 경우, router.use를 사용해야 합니다.
+    app.use(vite.middlewares)
+  } else {
+    app.use(await import('compression').then(i => i.default()));
+    app.use(await import('serve-static').then(i => i.default(resolve('dist/client'), {
+      index: false
+    })))
+  }
+
+
 
   //서버에서 렌더링된 HTML을 제공하기 위해 * 핸들러를 구현
   app.use('*', async (req, res, next) => {
-    const url = req.originalUrl;
     try {
-      // 1. index.html 파일을 읽어들입니다.
-      let template = fs.readFileSync(
-        path.resolve(__dirname, 'index.html'),
-        'utf-8'
-      )
-      // 2. Vite의 HTML 변환 작업을 통해 Vite HMR 클라이언트를 주입하고,
-      //    Vite 플러그인의 HTML 변환도 적용합니다.
-      //    (예시: @vitejs/plugin-react의 Global Preambles)
-      //transformIndexHtml : Vite 빌트인 HTML 변환 및 플러그인 HTML 변환을 적용합니다.
-      template = await vite.transformIndexHtml(url, template);
+      const url = req.originalUrl
 
-      // 3. 서버의 진입점(Entry)을 로드합니다.
-      //    ssrLoadModule은 Node.js에서 사용할 수 있도록 ESM 소스 코드를 자동으로 변환합니다.
-      //    추가적인 번들링이 필요하지 않으며, HMR과 유사한 동작을 수행합니다.
-      //ssrLoadModule : 주어진 URL을 SSR을 위해 인스턴스화 된 모듈로 로드합니다.
-      const { render } = await vite.ssrLoadModule('/src/entry-server.js')
-      
-      // 4. 앱의 HTML을 렌더링합니다.
-      //    이는 entry-server.js에서 내보낸(Export) `render` 함수가
-      //    ReactDOMServer.renderToString()과 같은 적절한 프레임워크의 SSR API를 호출한다고 가정합니다.
-      const appHtml = await render(url)
+      let template, render
+      if (!isProd) {
+        // always read fresh template in dev
+        template = fs.readFileSync(resolve('index.html'), 'utf-8')
+        template = await vite.transformIndexHtml(url, template)
+        render = (await vite.ssrLoadModule('/src/entry-server.ts')).render
+      } else {
+        template = indexProd
+        // @ts-expect-error dist file
+        render = await import('./dist/server/entry-server.js').then(i => i.render)
+      }
 
-      // 5. 렌더링된 HTML을 템플릿에 주입합니다.
-      const html = template.replace(`<!--ssr-outlet-->`, appHtml);
+      const [appHtml, preloadLinks] = await render(url, manifest)
 
-      // 6. 렌더링된 HTML을 응답으로 전송합니다.
+      const html = template
+        .replace('<!--preload-links-->', preloadLinks)
+        .replace('<!--app-html-->', appHtml)
+
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
-    } catch (e) {
-      // 만약 오류가 발생된다면, Vite는 스택트레이스(Stacktrace)를 수정하여
-      // 오류가 실제 코드에 매핑되도록 재구성합니다.
-      vite.ssrFixStacktrace(e)
-      next(e)
+    } catch (e: any) {
+      vite && vite.ssrFixStacktrace(e)
+      // eslint-disable-next-line no-console
+      console.log(e.stack)
+      res.status(500).end(e.stack)
     }
   })
 
-  app.listen(5173)
+  // @ts-expect-error used before assign
+  return { app, vite }
 }
 
-createServer()
+if (!isTest) {
+  createServer().then(({ app }) =>
+    app.listen(3000, () => {
+      // eslint-disable-next-line no-console
+      console.log('🚀  Server listening on http://localhost:3000')
+    }),
+  )
+}
+// for test use
+export default createServer
 
