@@ -13,6 +13,8 @@ SSR로 구동하는 vite, vue3 프로젝트를 만들어보고 싶어서 공식�
 - epxress
   - @types/express : Express.js 모듈의 타입 정의를 제공하는 패키지
   - ts-node : TypeScript 언어로 작성된 파일을 실행할 수 있도록 해주는 패키지
+  - serve-static : Express에서 정적 파일을 쉽게 서비스할 수 있도록 도와주는 패키지
+  - compression : HTTP 요청 및 응답 데이터를 압축하는 미들웨어
 - @types/node : Node.js 모듈의 타입 정의를 제공하는 패키지
 - pinia
 - vue-router
