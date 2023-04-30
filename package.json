@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node --watch ../../dist/*.js -x 'esno server'",
-    "build": "pnpm build:client && pnpm build:server",
+    "dev": "node --watch ./dist/server/*.js -x 'esno server'",
+    "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --ssrManifest --outDir dist/client",
     "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
     "generate": "DEBUG=vite-plugin-pages:* vite build --ssrManifest --outDir dist/static && yarn build:server && esno prerender",
