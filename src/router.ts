@@ -1,9 +1,13 @@
-import { createRouter as _createRouter, createMemoryHistory } from "vue-router";
-import routes from "~pages";
+import {
+  createRouter as _createRouter,
+  createMemoryHistory,
+  createWebHistory,
+} from 'vue-router';
+import routes from '~pages';
 
 export function createRouter() {
   return _createRouter({
-    history: createMemoryHistory(),
+    history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),
     routes,
   });
 }
