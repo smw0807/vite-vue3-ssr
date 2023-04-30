@@ -1,3 +1,7 @@
+/**
+ * Vite를 사용한 서버 사이드 렌더링(SSR)
+ * Epxress로 서버 구동
+ */
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
@@ -5,10 +9,16 @@ import type { ViteDevServer } from 'vite';
 import { fileURLToPath } from 'url';
 
 const isTest = process.env.NODE_ENV === 'test' || !!process.env.VITE_TEST_BUILD;
-
 const root = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+console.group('Environmental variables');
+console.log('isTest : ', isTest);
+console.log('root : ', root);
+console.log('isProd : ', isProd);
+console.log('__dirname : ', __dirname);
+console.log('????');
+console.groupEnd();
 
 async function createServer() {
   const resolve = (p: string) => path.resolve(__dirname, p);
@@ -51,6 +61,11 @@ async function createServer() {
   }
 
   //서버에서 렌더링된 HTML을 제공하기 위해 * 핸들러를 구현
+  /**
+   * 모든 요청에 대해 SSR을 수행하는 미들웨어
+   * 개발 환경에서는 항상 최신 템플릿을 사용
+   * render 함수를 사용하여 앱을 렌더링하고 결과 HTML을 응답으로 반환한다.
+   */
   app.use('*', async (req, res, next) => {
     try {
       const url = req.originalUrl;
@@ -90,6 +105,7 @@ async function createServer() {
   return { app, vite };
 }
 
+//테스트가 아닌 경우, 서버를 시작
 if (!isTest) {
   createServer().then(({ app }) =>
     app.listen(3000, () => {
@@ -98,5 +114,5 @@ if (!isTest) {
     })
   );
 }
-// for test use
+// 테스트를 위해 createServer 함수를 내보냄
 export default createServer;
