@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "nodem --watch ../../dist/*.js -x 'esno server'",
+    "dev": "node --watch ../../dist/*.js -x 'esno server'",
     "build": "pnpm build:client && pnpm build:server",
     "build:client": "vite build --ssrManifest --outDir dist/client",
     "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
@@ -24,6 +24,7 @@
     "@vitejs/plugin-vue": "^4.1.0",
     "@vue/compiler-sfc": "^3.2.47",
     "compression": "^1.7.4",
+    "esno": "^0.16.3",
     "server-static": "^2.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.2",
