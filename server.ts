@@ -2,11 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 import type { ViteDevServer } from 'vite';
+import { fileURLToPath } from 'url';
 
 const isTest = process.env.NODE_ENV === 'test' || !!process.env.VITE_TEST_BUILD;
 
 const root = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function createServer() {
   const resolve = (p: string) => path.resolve(__dirname, p);
@@ -16,8 +18,7 @@ async function createServer() {
     : '';
 
   const manifest = isProd
-    ? // @ts-expect-error dist file
-      await import('./dist/client/ssr-manifest.json')
+    ? await import('./dist/client/ssr-manifest.json')
     : {};
 
   const app = express();
@@ -64,7 +65,6 @@ async function createServer() {
         render = (await vite.ssrLoadModule('/src/entry-server.ts')).render;
       } else {
         template = indexProd;
-        // @ts-expect-error dist file
         render = await import('./dist/server/entry-server.js').then(
           i => i.render
         );
