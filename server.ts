@@ -78,6 +78,7 @@ async function createServer() {
 
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
     } catch (e: any) {
+      //SSR 에러 stacktrace 수정하기
       vite && vite.ssrFixStacktrace(e);
       // eslint-disable-next-line no-console
       console.log(e.stack);
