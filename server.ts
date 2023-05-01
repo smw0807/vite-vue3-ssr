@@ -14,10 +14,9 @@ const isProd = process.env.NODE_ENV === 'production';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 console.group('Environmental variables');
 console.log('isTest : ', isTest);
-console.log('root : ', root);
 console.log('isProd : ', isProd);
+console.log('root : ', root);
 console.log('__dirname : ', __dirname);
-console.log('????');
 console.groupEnd();
 
 async function createServer() {
