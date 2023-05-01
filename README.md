@@ -51,3 +51,16 @@ renderToString(app)
 ## vue-router -> isReady 함수
 
 이 함수는 주로 서버 사이드 렌더링(SSR)에 사용되며, HTML을 생성하기 전에 라우터가 초기 네비게이션 및 데이터 가져오기가 완료되었는지 확인하는 데 사용한다.
+
+## fast-glob
+
+파일 검색 도구 패키지  
+파일 시스템에서 원하는 패턴에 일치하는 파일 및 디렉터리를 빠르게 찾을 수 있도록 도와준다.
+
+```javascript
+const fg = require('fast-glob');
+(async () => {
+  const entries = await fg('**/*.js');
+  console.log(entries);
+})();
+```
